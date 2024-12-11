@@ -59,6 +59,7 @@ Vector3 GeometryUtility::normalize(Vector3 distance)
 
 float GeometryUtility::Dot(Vector3 c, Vector3 d)
 {
+
 	return c.x * d.x + c.y * d.y + c.z * d.z;
 }
 

@@ -11,33 +11,44 @@ GeometryUtility geometryUtility;
 
 Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to) {
 	
-	Vector3 fromNormalized = geometryUtility.normalize(from);
-	Vector3 toNormalized = geometryUtility.normalize(to);
+
 
 	
-	Vector3 axis = geometryUtility.cross(fromNormalized, toNormalized);
-	float dot = geometryUtility.Dot(fromNormalized, toNormalized);
+	Vector3 axis = geometryUtility.cross(from, to);
+	float dot = geometryUtility.Dot(from, to);
 
-	
-	if (dot > 0.9999f) {
-		
-		return {
-			1.0f, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		};
-	} else if (dot < -0.9999f) {
-		
-		Vector3 orthoAxis = geometryUtility.Perpendicular(fromNormalized);
-		return geometryUtility.MakeRotateAxisAngle(orthoAxis, float(M_PI));
+	Vector3 n = axis;
+	if (geometryUtility.length(axis) == 0.0f && dot < 0.0f) {
+		if (from.x != 0 || from.y != 0) {
+
+			n.x = from.y;
+			n.y = -from.x;
+			n.z = 0.0f;
+		} else if (from.x != 0 || from.z != 0) {
+
+			n.x = from.z;
+			n.y = 0.0f;
+			n.z = -from.x;
+		}
 	}
+	
+	n = geometryUtility.normalize(n);
 
-	axis = geometryUtility.normalize(axis);
+	float cosTheta = dot;
+	float sinTheta = geometryUtility.length(axis);
+	float oneMinusCosTheta = 1.0f - cosTheta;
 
-	float angle = acosf(dot);
+	float nx = n.x;
+	float ny = n.y;
+	float nz = n.z;
 
-	return geometryUtility.MakeRotateAxisAngle(axis, angle);
+	Matrix4x4 result = {
+		nx * nx * oneMinusCosTheta + cosTheta,          nx * ny * oneMinusCosTheta + nz * sinTheta, nx * nz * oneMinusCosTheta - ny * sinTheta, 0.0f,
+		nx * ny * oneMinusCosTheta - nz * sinTheta,     ny * ny * oneMinusCosTheta + cosTheta,      ny * nz * oneMinusCosTheta + nx * sinTheta, 0.0f,
+		nx * nz * oneMinusCosTheta + ny * sinTheta,     ny * nz * oneMinusCosTheta - nx * sinTheta, nz * nz * oneMinusCosTheta + cosTheta,      0.0f,
+		0.0f,                                          0.0f,                                      0.0f,                                      1.0f
+	};
+	return result;
 
 }
 
